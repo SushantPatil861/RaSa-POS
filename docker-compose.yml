@@ -1,0 +1,50 @@
+# Whole stack in containers:  docker compose up --build
+#   web  -> http://localhost:8081   (React app, proxies /api to the backend)
+#   api  -> http://localhost:8080
+#   db   -> localhost:5432
+# For day-to-day development you normally run only the database from here:  docker compose up -d db
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: cafepos
+      POSTGRES_USER: cafepos
+      POSTGRES_PASSWORD: ${CAFE_DB_PASSWORD:-cafepos}
+    ports:
+      - "5432:5432"
+    volumes:
+      - cafepos-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cafepos -d cafepos"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      CAFE_DB_URL: jdbc:postgresql://db:5432/cafepos
+      CAFE_DB_USER: cafepos
+      CAFE_DB_PASSWORD: ${CAFE_DB_PASSWORD:-cafepos}
+      # Dev default so `docker compose up -d db` works without a .env file. SET A REAL VALUE (32+ chars) for any real deployment.
+      CAFE_JWT_SECRET: ${CAFE_JWT_SECRET:-dev-only-secret-change-me-dev-only-secret-change-me}
+      CAFE_OWNER_NAME: ${CAFE_OWNER_NAME:-Owner}
+      CAFE_OWNER_EMAIL: ${CAFE_OWNER_EMAIL:-owner@cafe.local}
+      CAFE_OWNER_PASSWORD: ${CAFE_OWNER_PASSWORD:-}
+      CAFE_COOKIE_SECURE: ${CAFE_COOKIE_SECURE:-false}
+      CAFE_CORS_ORIGINS: ${CAFE_CORS_ORIGINS:-http://localhost:8081}
+    ports:
+      - "8080:8080"
+
+  web:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "8081:80"
+
+volumes:
+  cafepos-data:

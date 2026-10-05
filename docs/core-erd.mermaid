@@ -1,0 +1,151 @@
+erDiagram
+    BUSINESS ||--o{ USERS : has
+    ROLES ||--o{ USERS : assigned
+    CATEGORIES ||--o{ PRODUCTS : groups
+    PRODUCTS ||--o{ PRODUCT_VARIANTS : has
+    PRODUCTS ||--o{ PRODUCT_ALIASES : known_as
+
+    MENU_VERSIONS ||--o{ MENU_ITEMS : contains
+    PRODUCTS ||--o{ MENU_ITEMS : offered_as
+    PRODUCT_VARIANTS ||--o{ MENU_ITEMS : priced_as
+    MENU_VERSIONS ||--o{ PRICE_HISTORY : new_version
+    PRODUCTS ||--o{ PRICE_HISTORY : tracks
+
+    CUSTOMERS ||--o{ ORDERS : places
+    ORDERS ||--o{ ORDER_ITEMS : has
+    MENU_ITEMS ||--o{ ORDER_ITEMS : priced_from
+    ORDERS ||--o| SALES : becomes
+    SALES ||--o{ SALE_ITEMS : has
+    PRODUCTS ||--o{ SALE_ITEMS : sold
+    SALES ||--o{ PAYMENTS : paid_by
+    SALES }o--o| IMPORT_BATCHES : imported_in
+
+    DAILY_SALES_SUMMARIES }o--|| BUSINESS : per_day
+
+    SUPPLIERS ||--o{ PURCHASES : supplies
+    PURCHASES ||--o{ PURCHASE_ITEMS : has
+    EXPENSE_CATEGORIES ||--o{ EXPENSES : classifies
+    EXPENSE_SCHEDULES ||--o{ EXPENSES : expected_to_confirm
+
+    PRODUCT_VARIANTS ||--o{ RECIPES : made_by
+    RECIPES ||--o{ RECIPE_VERSIONS : versioned
+    RECIPE_VERSIONS ||--o{ RECIPE_LINES : lists
+    INGREDIENTS ||--o{ RECIPE_LINES : used_in
+    INGREDIENTS ||--o{ INGREDIENT_COST_HISTORY : priced
+    INGREDIENTS ||--o{ INGREDIENT_PACK_SPECS : packaged_as
+    PURCHASE_ITEMS ||--o| INVENTORY_LOTS : creates
+    INGREDIENTS ||--o{ INVENTORY_LOTS : stocked_as
+    INVENTORY_LOTS ||--o{ STOCK_CONTAINERS : opened_as
+    INVENTORY_LOTS ||--o{ INVENTORY_MOVEMENTS : moves
+    STOCK_CONTAINERS ||--o{ INVENTORY_MOVEMENTS : consumes
+    SALE_ITEMS ||--o{ COGS_ENTRIES : costed_by
+    INGREDIENTS ||--o{ COGS_ENTRIES : cost_of
+    INGREDIENTS ||--o{ WASTAGE : wasted
+
+    UPLOADED_DOCUMENTS ||--o{ OCR_EXTRACTIONS : extracted
+    UPLOADED_DOCUMENTS ||--o| DOCUMENT_DRAFTS : proposes
+    CASH_DAYS ||--o{ CASH_DIFFERENCE_EXPLANATIONS : explained_by
+    USERS ||--o{ AUDIT_LOG : performed
+
+    PRODUCTS {
+        bigint id PK
+        string code
+        string canonical_name
+        string lifecycle_status
+        bigint category_id FK
+    }
+    MENU_VERSIONS {
+        bigint id PK
+        string name
+        date effective_from
+        string status
+        string reason
+        bigint based_on_version_id FK
+    }
+    MENU_ITEMS {
+        bigint id PK
+        bigint menu_version_id FK
+        bigint product_id FK
+        bigint variant_id FK
+        decimal price
+        string display_name_snapshot
+        string availability
+    }
+    PRICE_HISTORY {
+        bigint id PK
+        bigint product_id FK
+        bigint variant_id FK
+        decimal old_price
+        decimal new_price
+        date effective_date
+        string reason
+        bigint changed_by FK
+        timestamp changed_at
+    }
+    ORDERS {
+        bigint id PK
+        string order_no
+        string source
+        string order_type
+        string status
+        string payment_status
+    }
+    SALES {
+        bigint id PK
+        date txn_date
+        timestamp entry_at
+        string source
+        string confirmation_state
+        int revision
+        string void_state
+        decimal net_amount
+    }
+    SALE_ITEMS {
+        bigint id PK
+        bigint sale_id FK
+        bigint product_id FK
+        decimal quantity
+        decimal list_price_at_sale
+        decimal unit_price
+        decimal discount
+    }
+    DAILY_SALES_SUMMARIES {
+        bigint id PK
+        date txn_date
+        decimal total_sales
+        int orders_count
+    }
+    INVENTORY_MOVEMENTS {
+        bigint id PK
+        string movement_type
+        decimal quantity_base_unit
+        date txn_date
+        timestamp entry_at
+        string reason
+    }
+    STOCK_CONTAINERS {
+        bigint id PK
+        string container_code
+        string status
+        timestamp opened_at
+        decimal opening_qty
+        string quantity_basis
+    }
+    COGS_ENTRIES {
+        bigint id PK
+        bigint sale_item_id FK
+        decimal quantity
+        decimal unit_cost
+        string cost_basis
+    }
+    AUDIT_LOG {
+        bigint id PK
+        string entity_type
+        bigint entity_id
+        string action
+        json before_value
+        json after_value
+        string reason
+        string source
+        timestamp at
+    }

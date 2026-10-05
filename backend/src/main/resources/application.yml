@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: cafe-pos
+  datasource:
+    url: ${CAFE_DB_URL:jdbc:postgresql://localhost:5432/cafepos}
+    username: ${CAFE_DB_USER:cafepos}
+    password: ${CAFE_DB_PASSWORD:cafepos}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: always
+    serialization:
+      write-dates-as-timestamps: false
+  mvc:
+    problemdetails:
+      enabled: true
+    format:
+      date: iso
+      date-time: iso
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 20MB
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+cafe:
+  business-id: 1
+  timezone: Asia/Kolkata
+  security:
+    # At least 32 characters. Set a long random value in production (CAFE_JWT_SECRET).
+    jwt-secret: ${CAFE_JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
+    access-token-minutes: 15
+    refresh-token-days: 30
+    # true when served over HTTPS
+    cookie-secure: ${CAFE_COOKIE_SECURE:false}
+  bootstrap:
+    owner-name: ${CAFE_OWNER_NAME:Owner}
+    owner-email: ${CAFE_OWNER_EMAIL:owner@cafe.local}
+    # If empty, a random password is generated and printed ONCE in the log at first start.
+    owner-password: ${CAFE_OWNER_PASSWORD:}
+  cors:
+    allowed-origins: ${CAFE_CORS_ORIGINS:http://localhost:5173}
+  # --- Phase 3: documents, OCR, WhatsApp ---
+  storage:
+    dir: ${CAFE_STORAGE_DIR:./data/uploads}
+  ocr:
+    enabled: ${CAFE_OCR_ENABLED:true}
+    tesseract-path: ${CAFE_OCR_TESSERACT:tesseract}
+    lang: ${CAFE_OCR_LANG:eng}
+    timeout-seconds: 60
+  whatsapp:
+    enabled: ${CAFE_WA_ENABLED:false}
+    token: ${CAFE_WA_TOKEN:}
+    phone-number-id: ${CAFE_WA_PHONE_ID:}
+    verify-token: ${CAFE_WA_VERIFY_TOKEN:}
+    app-secret: ${CAFE_WA_APP_SECRET:}
+    upi-vpa: ${CAFE_WA_UPI_VPA:}
+    allow-unsigned: ${CAFE_WA_ALLOW_UNSIGNED:false}
+    api-version: v20.0
